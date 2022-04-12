@@ -1,2 +1,9 @@
+### AppDb ###
+
 Add-Migration -Context AppDbContext -o Data\Migrations Initial
-Updata-Database -Context AppDbContext
+Update-Database -Context AppDbContext
+
+### IdentityDb ###
+
+Add-Migration -Context IdentityContext -o Data\IdentityMigrations Initial
+Update-Database -Context IdentityContext

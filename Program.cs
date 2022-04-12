@@ -20,6 +20,9 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddDbContextFactory<AppDbContext>(opt =>
     opt.UseSqlite($"Data Source={nameof(AppDbContext.AppDb)}.db"));
 
+builder.Services.AddDbContextFactory<IdentityContext>(opt =>
+    opt.UseSqlite($"Data Source={nameof(IdentityContext.IdentityDb)}.db"));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
