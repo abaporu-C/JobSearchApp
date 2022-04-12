@@ -1,5 +1,14 @@
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using JobSearchApp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +17,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddDbContextFactory<AppDbContext>(opt =>
+    opt.UseSqlite($"Data Source={nameof(AppDbContext.AppDb)}.db"));
 
 var app = builder.Build();
 

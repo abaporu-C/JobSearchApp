@@ -1,0 +1,2 @@
+Add-Migration -Context AppDbContext -o Data\Migrations Initial
+Updata-Database -Context AppDbContext

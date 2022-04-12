@@ -457,3 +457,10 @@ $RECYCLE.BIN/
 ## Enviroment
 ##
 .env
+
+##
+## Db files and Migrations
+##
+
+*.db
+./Data/Migrations
