@@ -463,4 +463,5 @@ $RECYCLE.BIN/
 ##
 
 *.db
-./Data/Migrations
+Data/Migrations
+Data/IdentityMigrations
