@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetEnv" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="6.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.4" />

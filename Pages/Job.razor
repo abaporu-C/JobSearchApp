@@ -1,0 +1,96 @@
+﻿@page "/Job/{description}/{id}"
+@using System.Text.Json
+@using System.Text.Json.Serialization;
+@using JobSearchApp.Models
+@using JobSearchApp.Services
+@inject IHttpContextAccessor httpContextAccessor
+@inject IHttpClientFactory ClientFactory
+@inject ApplicationService ApplicationService
+
+
+@if (job != null)
+{
+    <img src="@job.CompanyLogo" alt="Company Logo">
+<h1>@job.Title</h1>
+<p>Find the original job posting here: <a href="@job.Url">@job.Url</a></p>
+<ul>
+    <li><b>Company Name:</b> @job.CompanyName</li>
+    <li><b>Category:</b> @job.Category</li>
+    <li><b>Job Type:</b> @job.JobType</li>
+    <li><b>Required Location:</b> @job.CandidateRequiredLocation</li>
+    <li><b>Publication Date:</b> @job.PublicationDate</li>
+</ul>
+
+@((MarkupString)@job.Description)
+
+<h2 class="text-danger">@errorMessage</h2>
+
+<button class="btn btn-primary" @onclick="CreateApplication">
+    Create Application
+</button>
+}
+
+
+@code {
+    [Parameter]
+    public string? id { get; set; }
+
+    [Parameter]
+    public string? description { get; set; }
+
+    private JobSearchApp.DTOs.Job? job;
+    public string errorMessage = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        string uri = "https://remotive.com/api/remote-jobs?";
+
+        string[] stringArray = String.IsNullOrEmpty(description) ? Array.Empty<string>() : description.Split(" ");        
+
+        uri += "search=" + String.Join("+", stringArray);
+
+        var request = new HttpRequestMessage(HttpMethod.Get,
+            uri);
+
+        var client = ClientFactory.CreateClient();
+        var response = await client.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            JobResult? jobs = await JsonSerializer.DeserializeAsync<JobResult>(responseStream);
+
+            job = jobs.Jobs.Where(j => j.id == Convert.ToInt32(id)).FirstOrDefault();
+        }
+    }
+
+    public async Task CreateApplication()
+    {
+        bool canCreate = await ApplicationService.CheckApplication(job.Url);
+
+        if (canCreate)
+        {
+            string userEmail = httpContextAccessor.HttpContext.User.Identity.Name;
+
+            JobSearchApp.Models.Application application = new JobSearchApp.Models.Application{URL = job.Url, Category = job.Category ?? "", Employer = job.CompanyName, JobTitle = job.Title, HasApplied = false, ApplicationDate = null, HasInterviewed = false, InterviewDate = null, Hired = false, HireDate = null, Notes = ""};
+
+            await ApplicationService.CreateApplicationAsync(application, userEmail);
+        }
+        else
+        {
+            errorMessage = "You have already applied for this job!";
+        }
+    }
+
+    public class JobResult
+    {
+        [JsonPropertyName("0-legal-notice")]
+        public string? LegalNotice { get; set; }
+
+        [JsonPropertyName("job-count")]
+        public int Jobcount { get; set; }
+
+        [JsonPropertyName("jobs")]
+        public List<JobSearchApp.DTOs.Job>?  Jobs { get; set; }        
+    }
+}

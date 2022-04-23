@@ -1,0 +1,135 @@
+﻿@page "/JobSearch"
+@using JobSearchApp.DTOs
+@using System.Text.Json
+@using System.Text.Json.Serialization;
+@inject IHttpClientFactory ClientFactory
+
+<h1>Search for jobs here:</h1>
+<input type="text" id="search-box" @bind="searchString" required/>
+<button @onclick="SearchJobs">
+    Search
+</button>
+
+@if (jobs == null)
+{
+    <h2>@returnString</h2>
+}
+else
+{
+    <div class="container">
+        @{
+            double rows = Math.Round((double)(jobs.Jobs.Count / 4), 0);
+            int index = 0;
+            for(int i = 0; i < rows; i++)
+            {
+                <div class="row">
+                    <div class="col-3">
+                        <a href="/Job/@searchString/@jobs.Jobs.ElementAt(index).id" style="text-decoration: none">
+                            <div class="card" style="width: 18rem;"> 
+                                <img src="@jobs.Jobs.ElementAt(index).CompanyLogo" alt="Company Logo">
+                                <div class="card-body">
+                                    <h5 class="card-title"><b>Title:</b> @jobs.Jobs.ElementAt(index).Title</h5>
+                                    <p class="card-text"><b>Company:</b> @jobs.Jobs.ElementAt(index).CompanyName</p>
+                                    <p class="card-text"><b>Salary:</b> @jobs.Jobs.ElementAt(index).Salary</p>
+                                    <p class="card-text"><b>Publication Date:</b>@jobs.Jobs.ElementAt(index).PublicationDate</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    @{index++;}
+                    @if (index >= jobs.Jobs.Count) break;
+                    <div class="col-3">
+                        <a href="/Job/@searchString/@jobs.Jobs.ElementAt(index).id" style="text-decoration: none">
+                            <div class="card" style="width: 18rem;"> 
+                                <img src="@jobs.Jobs.ElementAt(index).CompanyLogo" alt="Company Logo">
+                                <div class="card-body">
+                                    <h5 class="card-title"><b>Title:</b> @jobs.Jobs.ElementAt(index).Title</h5>
+                                    <p class="card-text"><b>Company:</b> @jobs.Jobs.ElementAt(index).CompanyName</p>
+                                    <p class="card-text"><b>Salary:</b> @jobs.Jobs.ElementAt(index).Salary</p>
+                                    <p class="card-text"><b>Publication Date:</b>@jobs.Jobs.ElementAt(index).PublicationDate</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    @{index++;}
+                    @if (index >= jobs.Jobs.Count) break;
+                    <div class="col-3">
+                        <a href="/Job/@searchString/@jobs.Jobs.ElementAt(index).id" style="text-decoration: none">
+                            <div class="card" style="width: 18rem;"> 
+                                <img src="@jobs.Jobs.ElementAt(index).CompanyLogo" alt="Company Logo">
+                                <div class="card-body">
+                                    <h5 class="card-title"><b>Title:</b> @jobs.Jobs.ElementAt(index).Title</h5>
+                                    <p class="card-text"><b>Company:</b> @jobs.Jobs.ElementAt(index).CompanyName</p>
+                                    <p class="card-text"><b>Salary:</b> @jobs.Jobs.ElementAt(index).Salary</p>
+                                    <p class="card-text"><b>Publication Date:</b>@jobs.Jobs.ElementAt(index).PublicationDate</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    @{index++;}
+                    @if (index >= jobs.Jobs.Count) break;    
+                    <div class="col-3">
+                        <a href="/Job/@searchString/@jobs.Jobs.ElementAt(index).id" style="text-decoration: none">
+                            <div class="card" style="width: 18rem;"> 
+                                <img src="@jobs.Jobs.ElementAt(index).CompanyLogo" alt="Company Logo">
+                                <div class="card-body">
+                                    <h5 class="card-title"><b>Title:</b> @jobs.Jobs.ElementAt(index).Title</h5>
+                                    <p class="card-text"><b>Company:</b> @jobs.Jobs.ElementAt(index).CompanyName</p>
+                                    <p class="card-text"><b>Salary:</b> @jobs.Jobs.ElementAt(index).Salary</p>
+                                    <p class="card-text"><b>Publication Date:</b>@jobs.Jobs.ElementAt(index).PublicationDate</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    @{index++;}
+                    @if (index >= jobs.Jobs.Count) break;
+                </div>
+            } 
+        }               
+    </div>
+}
+
+
+@code {
+    private JobResult? jobs;
+    private string? searchString;
+    private string returnString = "Please, search for available jobs.";
+
+    public async Task SearchJobs()
+    {
+        string uri = "https://remotive.com/api/remote-jobs?";
+
+        string[] stringArray = String.IsNullOrEmpty(searchString) ? Array.Empty<string>() : searchString.Split(" ");        
+
+        uri += "search=" + String.Join("+", stringArray);
+
+        var request = new HttpRequestMessage(HttpMethod.Get,
+            uri);
+
+        var client = ClientFactory.CreateClient();
+        var response = await client.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            jobs = await JsonSerializer.DeserializeAsync<JobResult>(responseStream);
+        }
+        if(jobs?.Jobs.Count <= 0)
+        {
+            jobs = null;
+            returnString = "There are no job postings that match your search parameters.";
+        }
+    }
+
+    public class JobResult
+    {
+        [JsonPropertyName("0-legal-notice")]
+        public string LegalNotice { get; set; }
+
+        [JsonPropertyName("job-count")]
+        public int Jobcount { get; set; }
+
+        [JsonPropertyName("jobs")]
+        public List<JobSearchApp.DTOs.Job> Jobs { get; set; }        
+    }
+}

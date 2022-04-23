@@ -1,0 +1,76 @@
+﻿@page "/Applications"
+@using JobSearchApp.Models
+@using JobSearchApp.Services
+@inject ApplicationService ApplicationService
+@inject IHttpContextAccessor httpContextAccessor
+
+<h3>Applications</h3>
+
+@if(applications != null)
+{
+    <table class="table">
+    <thead>
+        <tr>
+            <th>
+                Job Title
+            </th>
+            <th>
+                Employer
+            </th>
+            <th>
+                Applied
+            </th>
+            <th>
+                Interviewed
+            </th>
+            <th>
+                Hired
+            </th>
+            <th>
+
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(JobSearchApp.Models.Application application in applications)
+        {
+            <tr>
+                <th>
+                    @application.JobTitle
+                </th>
+                <th>
+                    @application.Employer
+                </th>
+                <th>
+                    @application.HasApplied
+                </th>
+                <th>
+                    @application.HasInterviewed
+                </th>
+                <th>
+                    @application.Hired
+                </th>
+                <th>
+                    <a class="btn btn-primary" href="Application/@application.ID">Details</a>
+                </th>
+            </tr>
+        }
+    </tbody>
+    </table>
+}
+else
+{
+    <h3>You don't have any applications yet.</h3>
+}
+
+
+@code {
+    public List<JobSearchApp.Models.Application>? applications;
+
+    protected override async void OnInitialized()
+    {
+        string user = httpContextAccessor.HttpContext.User.Identity.Name;
+
+        applications = await ApplicationService.GetApplications(user);
+    }
+}

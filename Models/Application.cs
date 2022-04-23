@@ -12,6 +12,8 @@
 
         public string URL { get; set; }
 
+        public string Category { get; set; }
+
         public string Employer { get; set; }
 
         public string JobTitle { get; set; }

@@ -20,9 +20,9 @@ namespace JobSearchApp.Models
 
         public User User { get; set; }
 
-        public int DocumentTypeID { get; set; }
+        public int DocumentCategoryID { get; set; }
 
-        public DocumentType DocumentType { get; set; }
+        public DocumentCategory DocumentCategory { get; set; }
         
         //O:M Relationships
 

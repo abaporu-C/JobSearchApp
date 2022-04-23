@@ -26,6 +26,10 @@ namespace JobSearchApp.Data.Migrations
                     b.Property<DateTime?>("ApplicationDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Employer")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -70,7 +74,8 @@ namespace JobSearchApp.Data.Migrations
                         new
                         {
                             ID = 1,
-                            ApplicationDate = new DateTime(2022, 4, 17, 19, 35, 53, 383, DateTimeKind.Local).AddTicks(6141),
+                            ApplicationDate = new DateTime(2022, 4, 22, 13, 46, 16, 913, DateTimeKind.Local).AddTicks(2790),
+                            Category = "Software Developer",
                             Employer = "Google Canada",
                             HasApplied = true,
                             HasInterviewed = false,
@@ -98,19 +103,24 @@ namespace JobSearchApp.Data.Migrations
                     b.ToTable("ApplicationDocuments");
                 });
 
-            modelBuilder.Entity("JobSearchApp.Models.DocumentType", b =>
+            modelBuilder.Entity("JobSearchApp.Models.DocumentCategory", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("Category")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("UserID")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("ID");
 
-                    b.ToTable("DocumentTypes");
+                    b.HasIndex("UserID");
+
+                    b.ToTable("DocumentCategories");
                 });
 
             modelBuilder.Entity("JobSearchApp.Models.User", b =>
@@ -130,11 +140,10 @@ namespace JobSearchApp.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.HasKey("ID");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("Users");
 
@@ -143,33 +152,29 @@ namespace JobSearchApp.Data.Migrations
                         {
                             ID = 1,
                             Email = "mail@mail.com",
-                            JoinedOn = new DateTime(2022, 4, 17, 19, 35, 53, 383, DateTimeKind.Local).AddTicks(6043),
-                            Name = "Mario Feldman",
-                            UserName = "Mario"
+                            JoinedOn = new DateTime(2022, 4, 22, 13, 46, 16, 913, DateTimeKind.Local).AddTicks(2644),
+                            Name = "Mario Feldman"
                         },
                         new
                         {
                             ID = 2,
                             Email = "mail2@mail.com",
-                            JoinedOn = new DateTime(2022, 4, 17, 19, 35, 53, 383, DateTimeKind.Local).AddTicks(6057),
-                            Name = "Maria Feldman",
-                            UserName = "Maria"
+                            JoinedOn = new DateTime(2022, 4, 22, 13, 46, 16, 913, DateTimeKind.Local).AddTicks(2674),
+                            Name = "Maria Feldman"
                         },
                         new
                         {
                             ID = 3,
                             Email = "mail3@mail.com",
-                            JoinedOn = new DateTime(2022, 4, 17, 19, 35, 53, 383, DateTimeKind.Local).AddTicks(6058),
-                            Name = "Steven Nakamura",
-                            UserName = "Steven"
+                            JoinedOn = new DateTime(2022, 4, 22, 13, 46, 16, 913, DateTimeKind.Local).AddTicks(2675),
+                            Name = "Steven Nakamura"
                         },
                         new
                         {
                             ID = 4,
                             Email = "mail4@mail.com",
-                            JoinedOn = new DateTime(2022, 4, 17, 19, 35, 53, 383, DateTimeKind.Local).AddTicks(6059),
-                            Name = "Gaia Nakamura",
-                            UserName = "Gaia"
+                            JoinedOn = new DateTime(2022, 4, 22, 13, 46, 16, 913, DateTimeKind.Local).AddTicks(2676),
+                            Name = "Gaia Nakamura"
                         });
                 });
 
@@ -218,7 +223,7 @@ namespace JobSearchApp.Data.Migrations
                 {
                     b.HasBaseType("JobSearchApp.Models.Utils.UploadedFile");
 
-                    b.Property<int>("DocumentTypeID")
+                    b.Property<int>("DocumentCategoryID")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -228,7 +233,7 @@ namespace JobSearchApp.Data.Migrations
                     b.Property<int>("UserID")
                         .HasColumnType("INTEGER");
 
-                    b.HasIndex("DocumentTypeID");
+                    b.HasIndex("DocumentCategoryID");
 
                     b.HasIndex("UserID");
 
@@ -265,6 +270,17 @@ namespace JobSearchApp.Data.Migrations
                     b.Navigation("Document");
                 });
 
+            modelBuilder.Entity("JobSearchApp.Models.DocumentCategory", b =>
+                {
+                    b.HasOne("JobSearchApp.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("JobSearchApp.Models.Utils.FileContent", b =>
                 {
                     b.HasOne("JobSearchApp.Models.Utils.UploadedFile", "UploadedFile")
@@ -278,9 +294,9 @@ namespace JobSearchApp.Data.Migrations
 
             modelBuilder.Entity("JobSearchApp.Models.Document", b =>
                 {
-                    b.HasOne("JobSearchApp.Models.DocumentType", "DocumentType")
+                    b.HasOne("JobSearchApp.Models.DocumentCategory", "DocumentCategory")
                         .WithMany("Documents")
-                        .HasForeignKey("DocumentTypeID")
+                        .HasForeignKey("DocumentCategoryID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -290,7 +306,7 @@ namespace JobSearchApp.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("DocumentType");
+                    b.Navigation("DocumentCategory");
 
                     b.Navigation("User");
                 });
@@ -300,7 +316,7 @@ namespace JobSearchApp.Data.Migrations
                     b.Navigation("ApplicationDocuments");
                 });
 
-            modelBuilder.Entity("JobSearchApp.Models.DocumentType", b =>
+            modelBuilder.Entity("JobSearchApp.Models.DocumentCategory", b =>
                 {
                     b.Navigation("Documents");
                 });

@@ -1,0 +1,133 @@
+﻿@page "/Application/{id}"
+@using JobSearchApp.Models
+@using JobSearchApp.Services
+@inject ApplicationService ApplicationService
+@inject IHttpContextAccessor httpContextAccessor
+
+@if (application != null)
+{    
+    <h1><b>Job Title:</b> @application.JobTitle</h1>
+    <h2><b>Employer:</b> @application.Employer</h2>
+    <p><b>Original Job Posting:</b> @application.URL</p>
+    
+    <button class="btn btn-primary" @onclick="ToggleEdit">
+        Toggle Edit
+    </button>
+
+    <div class="row">
+        <div class="form-check">
+            <label class="form-check-label" for="applied">Has Applied?</label>
+            <input @bind=applyBool class="form-check-input" disabled=@disabled type="checkbox" id="applied" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <label for="appliedDate">Application Date:</label>
+            <input @bind=applyDate disabled=@disabled type="date" id="appliedDate" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-check">
+            <label class="form-check-label" for="interviewed">Has Interviewed?</label>
+            <input @bind=interviewBool class="form-check-input" disabled=@disabled type="checkbox" id="interviewed" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <label for="interviewDate">Interview Date:</label>
+            <input @bind=interviewDate disabled=@disabled type="date" id="interviewDate" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-check">
+            <label class="form-check-label" for="hired">Hired?</label>
+            <input @bind=hireBool class="form-check-input" disabled=@disabled type="checkbox" id="hired" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <label for="hireDate">Hiring Date:</label>
+            <input @bind=hireDate disabled=@disabled type="date" id="hireDate" />
+        </div>
+    </div>
+    
+    <div class="row">
+        <label for="notes">Notes:</label>
+        <textarea @bind=notesRef disabled=@disabled id="notes" rows="4" cols="50">
+        </textarea>
+    </div>
+
+    <button class="btn btn-primary" @onclick="SaveChanges" disabled=@disabled>
+        Save Changes
+    </button>
+    <button class="btn btn-danger" @onclick="DeleteApplication">
+        Delete
+    </button>
+}
+
+@code {
+    [Parameter]
+    public string? id { get; set; }
+
+    public JobSearchApp.Models.Application? application;
+
+    public bool disabled = true;
+
+    public string editMode = "Edit: Off";
+
+    public bool applyBool;
+    public DateTime? applyDate;
+    public bool interviewBool;
+    public DateTime? interviewDate;
+    public bool hireBool;
+    public DateTime? hireDate;
+    public string? notesRef;
+
+    protected override async void OnInitialized()
+    {
+        string user = httpContextAccessor.HttpContext.User.Identity.Name;
+
+        await ApplicationService.CheckUser(user, Convert.ToInt32(id));
+        //await ApplicationService.CheckApplication();
+
+        application = await ApplicationService.GetApplicationByIdAsync(Convert.ToInt32(id));
+
+        applyBool = application.HasApplied;
+        applyDate = application.ApplicationDate;
+        interviewBool = application.HasInterviewed;
+        interviewDate = application.InterviewDate;
+        hireBool = application.Hired;
+        hireDate = application.HireDate;
+        notesRef = application.Notes;
+    }
+
+    public void ToggleEdit()
+    {
+        disabled = !disabled;
+        if (editMode == "Edit: Off") editMode = "Edit: On";
+        if (editMode == "Edit: On") editMode = "Edit: Off";
+    }
+
+    public async void SaveChanges()
+    {
+        JobSearchApp.Models.Application applicationToUpdate = new JobSearchApp.Models.Application { ID = application.ID, URL = application.URL,
+                                                                                                  Category = application.Category, Employer = application.Employer,
+                                                                                                  JobTitle = application.JobTitle, HasApplied = applyBool, ApplicationDate = applyDate,
+                                                                                                  HasInterviewed = interviewBool, InterviewDate = interviewDate, Hired = hireBool,
+                                                                                                  HireDate = hireDate, Notes = notesRef, UserID = application.UserID};
+
+        await ApplicationService.UpdateApplication(applicationToUpdate);
+
+        ToggleEdit();
+    }
+
+    public async void DeleteApplication()
+    {
+        await ApplicationService.DeleteApplication(application.ID);
+    }
+}

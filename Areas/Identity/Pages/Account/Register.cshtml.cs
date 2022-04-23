@@ -10,6 +10,8 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
+using JobSearchApp.Data;
+using JobSearchApp.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -23,6 +25,7 @@ namespace JobSearchApp.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
+        private readonly AppDbContext _context;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IUserStore<IdentityUser> _userStore;
@@ -31,12 +34,14 @@ namespace JobSearchApp.Areas.Identity.Pages.Account
         private readonly IEmailSender _emailSender;
 
         public RegisterModel(
+            AppDbContext context,
             UserManager<IdentityUser> userManager,
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
+            _context = context;
             _userManager = userManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
@@ -97,6 +102,10 @@ namespace JobSearchApp.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            [Required(ErrorMessage = "You need to enter your name.")]
+            [Display(Name = "Name")]
+            public string Name { get; set; }
         }
 
 
@@ -121,6 +130,12 @@ namespace JobSearchApp.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
+
+                    //Create User in Context
+                    User newUser = new User { Name = Input.Name, Email = Input.Email, JoinedOn = DateTime.Now };
+
+                    _context.Users.Add(newUser);
+                    await _context.SaveChangesAsync();
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
